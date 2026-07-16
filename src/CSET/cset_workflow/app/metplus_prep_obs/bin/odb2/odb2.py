@@ -5,8 +5,11 @@ Sites can extend the classes with their own templates.
 """
 
 import functools
+import io
 import json
 import logging
+import shlex
+import subprocess
 import sys
 from abc import ABC, abstractmethod
 from contextlib import nullcontext
@@ -22,7 +25,9 @@ from metomi.isodatetime.data import TimePoint
 from pandas import DataFrame
 
 try:
-    from compression import bz2, gzip, tarfile, zstd
+    import tarfile
+
+    from compression import bz2, gzip, zstd
 except ImportError:
     import bz2
     import gzip
@@ -303,6 +308,29 @@ def read_file(pattern: str, valid_time: TimePoint) -> Iterable[DataFrame]:
         else:
             with open(p, "rb") as f:
                 yield from odc.read_odb(f)
+
+
+def read_odb(
+    path: str | Path, columns: list[str], where: str | None = None
+) -> DataFrame:
+    """
+    Read ODB2 data using ODC CLI.
+
+    Args:
+        path: Path to the ODB2 file
+        where: Optional SQL-like filter to apply to the data
+    """
+    sql = f"SELECT {', '.join(columns)}"
+    if where is not None:
+        sql += f" WHERE {where}"
+    cmd = ["odc", "sql", "-i", str(path), sql]
+    log.info("Running command: %s", shlex.join(cmd))
+    r = subprocess.run(cmd, stdout=subprocess.PIPE, text=True, check=True)
+
+    stream = io.StringIO(r.stdout)
+
+    df = pandas.read_csv(stream, sep="\t")
+    return df
 
 
 def valid_times_iterator(

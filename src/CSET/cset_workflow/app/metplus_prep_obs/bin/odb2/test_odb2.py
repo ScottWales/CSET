@@ -1,6 +1,7 @@
 """Tests for ODB2 to MET ASCII conversion."""
 
 import io
+from unittest.mock import patch
 
 import numpy
 import pandas
@@ -11,6 +12,7 @@ from .odb2 import (
     get_level,
     get_type,
     odb2ascii_dataframe,
+    read_odb,
     write_ascii,
 )
 
@@ -157,3 +159,21 @@ def test_write_ascii():
     write_ascii(ascii, output)
     expect = "ADPSFC\tDUMMY\t20010101_0100\t10\t20\t30\tt2m\tNA\t0\tNA\t40\n"
     assert output.getvalue() == expect
+
+
+def test_read_odb():
+    """Test read_odb."""
+    with patch("subprocess.run") as mock_run:
+        mock_run.return_value.stdout = (
+            "name@varno\tvertco_type@body\tvertco_reference_1@body\n"
+        )
+        mock_run.return_value.returncode = 0
+        df = read_odb(
+            "dummy_path", ["name@varno", "vertco_type@body", "vertco_reference_1@body"]
+        )
+        assert isinstance(df, pandas.DataFrame)
+        assert list(df.columns) == [
+            "name@varno",
+            "vertco_type@body",
+            "vertco_reference_1@body",
+        ]
