@@ -25,7 +25,7 @@ def load(conf: Config):
     models = get_models(conf.asdict())
     # Models are listed in order, so model 1 is the first element.
 
-    if conf.SCORES_RMSE_SPATIAL:
+    if conf.SCORES_RMSE_SPATIAL or conf.SCORES_ALL:
         base_model = models[0]
         for model, field, method in itertools.product(
             models[1:], conf.SURFACE_FIELDS, conf.SPATIAL_SURFACE_FIELD_METHOD
@@ -46,7 +46,7 @@ def load(conf: Config):
                 aggregation=False,
             )
 
-    if conf.SCORES_RMSE_TIMESERIES:
+    if conf.SCORES_RMSE_TIMESERIES or conf.SCORES_ALL:
         base_model = models[0]
         for model, field in itertools.product(models[1:], conf.SURFACE_FIELDS):
             yield RawRecipe(
@@ -61,5 +61,22 @@ def load(conf: Config):
                     else None,
                 },
                 model_ids=[base_model["id"], model["id"]],
+                aggregation=False,
+            )
+
+    if conf.SCORES_CRPS_FOR_ENSEMBLE:
+        for model, field in itertools.product(models, conf.SURFACE_FIELDS):
+            yield RawRecipe(
+                recipe="crps_for_ensemble.yaml",
+                variables={
+                    "VARNAME": field,
+                    "CONTROL_MEMBER": conf.CONTROL_MEMBER,
+                    "METHOD": conf.METHOD_FOR_CRPS,
+                    "SUBAREA_TYPE": conf.SUBAREA_TYPE if conf.SELECT_SUBAREA else None,
+                    "SUBAREA_EXTENT": conf.SUBAREA_EXTENT
+                    if conf.SELECT_SUBAREA
+                    else None,
+                },
+                model_ids=[model["id"]],
                 aggregation=False,
             )
