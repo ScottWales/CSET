@@ -169,7 +169,7 @@ def test_read_odb():
         )
         mock_run.return_value.returncode = 0
         df = read_odb(
-            "dummy_path", ["name@varno", "vertco_type@body", "vertco_reference_1@body"]
+            io.BytesIO(), ["name@varno", "vertco_type@body", "vertco_reference_1@body"]
         )
         assert isinstance(df, pandas.DataFrame)
         assert list(df.columns) == [
