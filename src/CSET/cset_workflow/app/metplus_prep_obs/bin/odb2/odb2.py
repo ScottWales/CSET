@@ -215,9 +215,6 @@ def odb2ascii_dataframe(obs: DataFrame) -> DataFrame:
     Output format is described at
     https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/reformat_point.html#id9
     """
-    # QC filter for only active values
-    obs = obs.loc[(obs["report_status@hdr"] | obs["datum_status@body"]) == 1]
-
     # Join in extra info
     obs = obs.join(varno_table(), on="varno@body")
     obs = obs.join(reporttype_table(), on="reportype@hdr")
@@ -321,8 +318,23 @@ class PrepODB2(ABC):
     ...    converter.odb2ascii(f, valid_times)
     """
 
-    odb_columns = []
-    odb_where = ""  # Optional SQL-like filter to apply to the data
+    # ODB2 columns to read for each observation
+    odb_columns = [
+        "vertco_type@body",
+        "vertco_reference_1@body",
+        "varno@body",
+        "statid@hdr",
+        "date@hdr",
+        "time@hdr",
+        "lat@hdr",
+        "lon@hdr",
+        "stalt@hdr",
+        "obsvalue@body",
+        "reportype@hdr",
+    ]
+
+    # Optional SQL-like filter to apply to the data for QC filtering
+    odb_where = "report_status@hdr = 1 AND datum_status@body = 1"
 
     def read_tarfile(self, tarpath: str, path: str, valid_time: TimePoint) -> DataFrame:
         """
