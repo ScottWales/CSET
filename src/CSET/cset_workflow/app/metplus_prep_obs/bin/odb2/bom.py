@@ -34,7 +34,7 @@ class PrepBom(PrepODB2):
         self.system = system
 
         # Filter out observations rejected by OPS
-        self.odb_where += "AND ops_report_flag@hdr = 0 AND ops_datum_flag.b0@body = 0"
+        self.odb_where += " AND ops_report_flags@hdr = 0 AND ops_datum_flags.b0@body = 0"
 
     def read_c3_type(self, type: str, valid_time: TimePoint) -> DataFrame:
         """Read C3 data pattern."""

@@ -53,7 +53,6 @@ def main(argv: list[str]):
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
-        sys.tracebacklimit = 0
 
     PrepBomNci(args.system).odb2ascii(
         args.output, valid_times_iterator(args.valid_time)
