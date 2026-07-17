@@ -12,7 +12,7 @@ from .odb2 import (
     get_level,
     get_type,
     odb2ascii_dataframe,
-    read_odb,
+    read_odb_sql,
     write_ascii,
 )
 
@@ -168,7 +168,7 @@ def test_read_odb():
             "name@varno\tvertco_type@body\tvertco_reference_1@body\n"
         )
         mock_run.return_value.returncode = 0
-        df = read_odb(
+        df = read_odb_sql(
             io.BytesIO(), ["name@varno", "vertco_type@body", "vertco_reference_1@body"]
         )
         assert isinstance(df, pandas.DataFrame)
