@@ -336,7 +336,9 @@ class PrepODB2(ABC):
     # Optional SQL-like filter to apply to the data for QC filtering
     odb_where = "report_status@hdr = 1 AND datum_status@body = 1"
 
-    def read_tarfile(self, tarpath: str, path: str, valid_time: TimePoint) -> DataFrame:
+    def read_tarfile(
+        self, tarpath: str, path: str, valid_time: TimePoint
+    ) -> Iterable[DataFrame]:
         """
         Read ODB2 data from a tarfile.
 
@@ -353,9 +355,9 @@ class PrepODB2(ABC):
 
         with tarfile.open(tarpath, "r") as t:
             f = t.extractfile(path)
-            return read_odb_sql(f, self.odb_columns, self.odb_where)
+            yield read_odb_sql(f, self.odb_columns, self.odb_where)
 
-    def read_file(self, pattern: str, valid_time: TimePoint) -> DataFrame:
+    def read_file(self, pattern: str, valid_time: TimePoint) -> Iterable[DataFrame]:
         """
         Read ODB2 data from a file, decompressing if required.
 
@@ -373,23 +375,23 @@ class PrepODB2(ABC):
         for p in glob(path):
             if p.endswith(".gz"):
                 with gzip.open(p) as f:
-                    return read_odb_sql(f, self.odb_columns, self.odb_where)
+                    yield read_odb_sql(f, self.odb_columns, self.odb_where)
             elif p.endswith(".bz2"):
                 with bz2.open(p) as f:
-                    return read_odb_sql(f, self.odb_columns, self.odb_where)
+                    yield read_odb_sql(f, self.odb_columns, self.odb_where)
             elif p.endswith(".zst"):
                 with zstd.open(p) as f:
-                    return read_odb_sql(f, self.odb_columns, self.odb_where)
+                    yield read_odb_sql(f, self.odb_columns, self.odb_where)
             else:
                 with open(p, "rb") as f:
-                    return read_odb_sql(f, self.odb_columns, self.odb_where)
+                    yield read_odb_sql(f, self.odb_columns, self.odb_where)
 
     @abstractmethod
-    def read_odb(self, valid_time: TimePoint) -> DataFrame:
+    def read_odb(self, valid_time: TimePoint) -> Iterable[DataFrame]:
         """
         Read ODB2 data.
 
-        Subclasses should implement this method to read ODB2 data for the given valid_time and return a DataFrame.
+        Subclasses should implement this method to read ODB2 data for the given valid_time and return an iterable of DataFrames.
         """
         raise NotImplementedError
 
@@ -410,9 +412,9 @@ class PrepODB2(ABC):
 
             log.info("Processing %s", t)
             with out_context as f:
-                obs = self.read_odb(t)
-                ascii = odb2ascii_dataframe(obs)
-                write_ascii(ascii, f)
+                for obs in self.read_odb(t):
+                    ascii = odb2ascii_dataframe(obs)
+                    write_ascii(ascii, f)
 
 
 class PrepODB2Pattern(PrepODB2):
@@ -436,7 +438,7 @@ class PrepODB2Pattern(PrepODB2):
         """
         self.pattern = pattern
 
-    def read_odb(self, valid_time: TimePoint) -> DataFrame:
+    def read_odb(self, valid_time: TimePoint) -> Iterable[DataFrame]:
         """
         Read in the ODB2 files.
 

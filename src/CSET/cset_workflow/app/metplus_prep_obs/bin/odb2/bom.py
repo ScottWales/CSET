@@ -5,7 +5,8 @@ Internal BOM systems use PrepBom as a base class and fill in the internal
 patterns.
 """
 
-import pandas
+from typing import Iterable
+
 from metomi.isodatetime.data import TimePoint
 from pandas import DataFrame
 
@@ -36,23 +37,23 @@ class PrepBom(PrepODB2):
         # Filter out observations rejected by OPS
         self.odb_where += " AND ops_report_flags@hdr = 0 AND ops_datum_flags.b0@body = 0"
 
-    def read_c3_type(self, type: str, valid_time: TimePoint) -> DataFrame:
+    def read_c3_type(self, type: str, valid_time: TimePoint) -> Iterable[DataFrame]:
         """Read C3 data pattern."""
         raise NotImplementedError
 
-    def read_c4_type(self, type: str, valid_time: TimePoint) -> DataFrame:
+    def read_c4_type(self, type: str, valid_time: TimePoint) -> Iterable[DataFrame]:
         """Read C4 data pattern."""
         raise NotImplementedError
 
-    def read_g3_type(self, type: str, valid_time: TimePoint) -> DataFrame:
+    def read_g3_type(self, type: str, valid_time: TimePoint) -> Iterable[DataFrame]:
         """Read G3 data pattern."""
         raise NotImplementedError
 
-    def read_g4_type(self, type: str, valid_time: TimePoint) -> DataFrame:
+    def read_g4_type(self, type: str, valid_time: TimePoint) -> Iterable[DataFrame]:
         """Read G4 data pattern."""
         raise NotImplementedError
 
-    def read_type(self, type: str, valid_time: TimePoint) -> DataFrame:
+    def read_type(self, type: str, valid_time: TimePoint) -> Iterable[DataFrame]:
         """
         Dispatch to readers for the current system.
 
@@ -60,7 +61,7 @@ class PrepBom(PrepODB2):
             type: observation type (ODB2 file name without the suffix)
             valid_time: time to load
 
-        Returns a ODB2 DataFrame containing all the observations for the given type and time.
+        Returns an iterable of ODB2 DataFrames containing all the observations for the given type and time.
         """
         if self.system.startswith("access_c3"):
             return self.read_c3_type(type, valid_time)
@@ -71,24 +72,22 @@ class PrepBom(PrepODB2):
         elif self.system.startswith("access_g4"):
             return self.read_g4_type(type, valid_time)
 
-    def read_odb(self, valid_time: TimePoint) -> DataFrame:
+    def read_odb(self, valid_time: TimePoint) -> Iterable[DataFrame]:
         """
         Read in the ODB2 files that we use with MET.
 
         Args:
             valid_time: time to load
 
-        Returns a ODB2 DataFrame containing all the observations for the given time.
+        Returns an iterable of ODB2 DataFrames containing all the observations for the given time.
         """
         if self.system.startswith("access_c"):
-            return pandas.concat(
-                [self.read_type(type, valid_time) for type in access_c_types]
-            )
+            for type in access_c_types:
+                yield from self.read_type(type, valid_time)
 
         elif self.system.startswith("access_g"):
-            return pandas.concat(
-                [self.read_type(type, valid_time) for type in access_g_types]
-            )
+            for type in access_g_types:
+                yield from self.read_type(type, valid_time)
 
         else:
             raise ValueError("Unknown system '%s'", self.system)
@@ -106,28 +105,28 @@ class PrepBomNci(PrepBom):
         """
         super().__init__(system)
 
-    def read_c3_type(self, type: str, valid_time: TimePoint) -> DataFrame:
+    def read_c3_type(self, type: str, valid_time: TimePoint) -> Iterable[DataFrame]:
         """Read C3 data pattern."""
         domain = self.system.split("_")[-1]
         tarfile = f"/g/data/ig2/odb2/access_c3/%Y/%m/%Y%m%dT%H%MZ/%Y%m%dT%H%MZ_{domain}_odb2.tar.zst"
         obsfile = f"ukv_odb2/{type}.odb"
         return self.read_tarfile(tarfile, obsfile, valid_time)
 
-    def read_c4_type(self, type: str, valid_time: TimePoint) -> DataFrame:
+    def read_c4_type(self, type: str, valid_time: TimePoint) -> Iterable[DataFrame]:
         """Read C4 data pattern."""
         domain = self.system.split("_")[-1]
         tarfile = f"/g/data/ig2/odb2/access_c4/%Y/%m/%Y%m%dT%H%MZ/%Y%m%dT%H%MZ_{domain}_odb2.tgz"
         obsfile = f"ukv_odb2/{type}.odb"
         return self.read_tarfile(tarfile, obsfile, valid_time)
 
-    def read_g3_type(self, type: str, valid_time: TimePoint) -> DataFrame:
+    def read_g3_type(self, type: str, valid_time: TimePoint) -> Iterable[DataFrame]:
         """Read G3 data pattern."""
         pattern = (
             "/g/data/ig2/odb2/access_g3/%Y/%m/%Y%m%dT%H%MZ/glm_odb2/{type}.odb.zst"
         )
         return self.read_file(pattern, valid_time)
 
-    def read_g4_type(self, type: str, valid_time: TimePoint) -> DataFrame:
+    def read_g4_type(self, type: str, valid_time: TimePoint) -> Iterable[DataFrame]:
         """Read G4 data pattern."""
         pattern = (
             "/g/data/ig2/odb2/access_g4/%Y/%m/%Y%m%dT%H%MZ/glm_odb2/{type}.odb.zst"
