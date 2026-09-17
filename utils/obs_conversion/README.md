@@ -8,7 +8,7 @@ Different data formats are converted to a common DataFrame format, which can the
 
 Converts ODB2 format observations to MET ASCII format
 
-    odb2_to_met.py sample.odb2 --output sample.nc
+    python -m obs_conversion.odb2_to_met sample.odb2 --output sample.nc
 
 The observations can then be used in MET's [point_stat](https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/point-stat.html) and [ensemble_stat](https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/ensemble-stat.html) tools to compare against gridded data, or put on a grid with [point2grid](https://metplus.readthedocs.io/projects/met/en/latest/Users_Guide/reformat_point.html#point2grid-tool)
 
@@ -20,6 +20,6 @@ The observations can then be used in MET's [point_stat](https://metplus.readthed
 
 Convert QC'd rainfall data sourced from JIVE to MET format
 
-    bom_rain_to_met.py --stations StationData.csv 20250101T0000Z-20251231T2359Z-precipitation_accumulation-PT24H.nc --output sample.nc
+    python -m obs_conversion.bom_rain_to_met --stations StationData.csv 20250101T0000Z-20251231T2359Z-precipitation_accumulation-PT24H.nc --output JIVE_APCP_A24_20250101-20251231.nc
 
 JIVE data is on Gadi under /g/data/dp9/verification/data/jive-rain

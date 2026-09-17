@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 """Convert BOM rain data from JIVE to MET point observation format."""
 
@@ -18,7 +18,7 @@ def bom_jive_to_obs_dataframe(jive_file: Path) -> DataFrame:
     ds = xarray.open_dataset(jive_file)  # type: ignore
     precip_accum = ds["lwe_thickness_of_precipitation_amount"]
     units = precip_accum.attrs["units"]
-    df = precip_accum.to_dataframe()
+    df = precip_accum.to_dataframe().reset_index()
     df = df.rename(
         columns={
             "station_number": "station_id",
@@ -36,6 +36,9 @@ def bom_jive_to_obs_dataframe(jive_file: Path) -> DataFrame:
         raise AttributeError("Unable to determine precipitation accumulation interval")
     df["level"] = match.group(1)
     df["QC"] = "0"
+
+    print(df.head())
+
     return df
 
 
