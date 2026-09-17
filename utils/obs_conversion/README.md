@@ -15,3 +15,11 @@ The observations can then be used in MET's [point_stat](https://metplus.readthed
 ### Requirements
 
  * [odc](https://anaconda.org/channels/conda-forge/packages/odc/overview)
+
+## bom_rain_to_met
+
+Convert QC'd rainfall data sourced from JIVE to MET format
+
+    bom_rain_to_met.py --stations StationData.csv 20250101T0000Z-20251231T2359Z-precipitation_accumulation-PT24H.nc --output sample.nc
+
+JIVE data is on Gadi under /g/data/dp9/verification/data/jive-rain
