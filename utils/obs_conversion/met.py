@@ -370,6 +370,6 @@ def save_obs_dataframe_as_met(
         ds.to_netcdf(output)  # type: ignore
     elif format == "ascii":
         ascii_data = to_ascii(obs, stations)
-        ascii_data.to_csv(output, index=False, header=False, sep="\t")
+        ascii_data.to_csv(output, index=False, header=False, sep="\t", na_rep="NA")
     else:
         raise ValueError(f"Unsupported format: {format}")
