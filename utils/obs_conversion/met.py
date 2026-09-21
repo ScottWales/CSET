@@ -165,7 +165,7 @@ def to_point_nc(obs: DataFrame, stations: DataFrame | None = None) -> xarray.Dat
         "obs_var": {
             "dims": ("obs_var_num",),
             "values": [],
-            "encoding": e_mxstr,
+            "encoding": e_mxstr2,
         },  # Variable names lookup table
         "obs_unit": {
             "dims": ("obs_var_num",),
