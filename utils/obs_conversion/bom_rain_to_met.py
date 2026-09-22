@@ -27,14 +27,15 @@ def bom_jive_to_obs_dataframe(jive_file: Path) -> DataFrame:
         }
     )
     df["prepbufr_type"] = "ADPSFC"
-    df["var_name"] = "APCP"
     df["units"] = units
     df["height"] = 0
     method = precip_accum.attrs["cell_methods"]
     match = re.match(r"time: sum \(interval: (\d+)h\)", method)
     if match is None:
         raise AttributeError("Unable to determine precipitation accumulation interval")
-    df["level"] = match.group(1)
+    accum = int(match.group(1))
+    df["var_name"] = f"APCP_{accum:02d}"
+    df["level"] = accum
     df["QC"] = "0"
 
     print(df.head())
