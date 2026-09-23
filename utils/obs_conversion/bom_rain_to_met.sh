@@ -7,6 +7,9 @@ set -x
 SCRIPT_DIR=$( cd -- "$( dirname -- "$(readlink -f "${BASH_SOURCE[0]}")" )" &> /dev/null && pwd )
 cd $SCRIPT_DIR/..
 
+module use /g/data/access/ngm/modules
+module load cset
+
 for YEAR in {2016..2025}; do
     for ACCUM in 1 3 24; do
         FILLEDACCUM=$(printf '%02d' $ACCUM)

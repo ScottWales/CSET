@@ -35,7 +35,7 @@ def bom_jive_to_obs_dataframe(jive_file: Path) -> DataFrame:
         raise AttributeError("Unable to determine precipitation accumulation interval")
     accum = int(match.group(1))
     df["var_name"] = f"APCP_{accum:02d}"
-    df["level"] = accum
+    df["level"] = accum*60*60
     df["QC"] = "0"
 
     print(df.head())
